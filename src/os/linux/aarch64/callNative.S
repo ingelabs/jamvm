@@ -210,3 +210,7 @@ return:
         ldp     x29, x30, [sp], #32
         ret
 #endif
+
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
