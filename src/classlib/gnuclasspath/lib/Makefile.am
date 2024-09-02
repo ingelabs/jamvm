@@ -19,7 +19,7 @@
 ## Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 ##
 
-CP_LIB_DIR = ${with_classpath_install_dir}/share/classpath
+CP_LIB_DIR = $(SYSROOT)${with_classpath_install_dir}/share/classpath
 GLIBJ_ZIP  = ${CP_LIB_DIR}/glibj.zip
 
 SUBDIRS = jamvm java gnu sun
