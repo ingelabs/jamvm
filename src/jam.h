@@ -1171,6 +1171,7 @@ extern char *convertSig2Simple(char *sig);
 
 /* Threading */
 
+extern int initialiseThreadCondAttr();
 extern int initialiseThreadStage1(InitArgs *args);
 extern int initialiseThreadStage2(InitArgs *args);
 extern ExecEnv *getExecEnv();
