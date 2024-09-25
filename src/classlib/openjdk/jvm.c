@@ -57,12 +57,6 @@
 
 #define JVM_INTERFACE_VERSION 4
 
-/* We use the monotonic clock if it is available.  As the clock_id may be
-   present but not actually supported, we check it on startup */
-#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
-static int have_monotonic_clock;
-#endif
-
 static Class *cloneable_class, *constant_pool_class;
 static Class *exception_class, *runtime_excp_class;
 
@@ -71,11 +65,6 @@ static int constant_pool_oop_offset;
 
 int initialiseJVMInterface() {
     Class *pae_class;
-
-#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
-    struct timespec ts;
-    have_monotonic_clock = (clock_gettime(CLOCK_MONOTONIC, &ts) != -1);
-#endif
 
     cloneable_class = findSystemClass0(SYMBOL(java_lang_Cloneable));
     constant_pool_class = findSystemClass0(SYMBOL(sun_reflect_ConstantPool));
@@ -176,7 +165,7 @@ jlong JVM_NanoTime(JNIEnv *env, jclass ignored) {
     TRACE("JVM_NanoTime(env=%p, ignored=%p)", env, ignored);
 
 #if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
-    if(have_monotonic_clock) {
+    if(haveMonotonicClock()) {
         struct timespec ts;
 
         clock_gettime(CLOCK_MONOTONIC, &ts);
