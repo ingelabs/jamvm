@@ -18,9 +18,30 @@
  * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "config.h"
+
 #include <sys/time.h>
 #include <time.h>
 #include <limits.h>
+
+/* We use the monotonic clock if it is available.  As the clock_id may be
+   present but not actually supported, we check it on first use.
+   The initial value -1 means we have not yet checked. */
+#if defined(HAVE_LIBRT) && defined(CLOCK_MONOTONIC)
+static int have_monotonic_clock = -1;
+#endif
+
+int haveMonotonicClock() {
+#if defined(HAVE_LIBRT) && defined(CLOCK_MONOTONIC)
+    if (have_monotonic_clock == -1) {
+        struct timespec ts;
+        have_monotonic_clock = (clock_gettime(CLOCK_MONOTONIC, &ts) != -1);
+    }
+    return have_monotonic_clock;
+#else
+    return 0;
+#endif
+}
 
 void getTimeoutAbsolute(struct timespec *ts, long long millis,
                         long long nanos) {
