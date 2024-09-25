@@ -102,7 +102,8 @@ struct thread {
     Thread *wait_prev;
     Thread *wait_next;
     pthread_cond_t wait_cv;
-    pthread_cond_t park_cv;
+    pthread_cond_t park_rel_cv;
+    pthread_cond_t park_abs_cv;
     pthread_mutex_t park_lock;
     long long blocked_count;
     long long waited_count;
@@ -111,6 +112,7 @@ struct thread {
     unsigned int notify_id;
     char suspend;
     char park_state;
+    char park_abs;
     char interrupted;
     char interrupting;
     char suspend_state;
@@ -165,6 +167,8 @@ extern Object *runningThreadStackTrace(Thread *thread, int max_depth,
 extern Object *runningThreadObjects();
 extern void printThreadsDump(Thread *self);
 
+extern pthread_condattr_t *condAttr();
+
 #define disableSuspend(thread)             \
 {                                          \
     sigjmp_buf *env;                       \
@@ -187,9 +191,9 @@ typedef struct {
 typedef pthread_mutex_t VMLock;
 
 #define initVMLock(lock) pthread_mutex_init(&lock, NULL)
-#define initVMWaitLock(wait_lock) {            \
-    pthread_mutex_init(&wait_lock.lock, NULL); \
-    pthread_cond_init(&wait_lock.cv, NULL);    \
+#define initVMWaitLock(wait_lock) {                 \
+    pthread_mutex_init(&wait_lock.lock, NULL);      \
+    pthread_cond_init(&wait_lock.cv, condAttr());   \
 }
 
 #define lockVMLock(lock, self) {                \
