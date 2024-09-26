@@ -1303,6 +1303,14 @@ int initialiseThreadStage1(InitArgs *args) {
     pthread_cond_init(&exit_cv, NULL);
 
     pthread_condattr_init(&condattr);
+    if(haveMonotonicTimedWait()) {
+#if defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined(CLOCK_MONOTONIC)
+        pthread_condattr_setclock(&condattr, CLOCK_MONOTONIC);
+#endif
+    } else {
+        jam_fprintf(stderr, "Monotonic clock not available. Changes to " \
+                            "the current date/time may affect scheduling.\n");
+    }
 
 #ifndef HAVE_TLS
     pthread_key_create(&self, NULL);

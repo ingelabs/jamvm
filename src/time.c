@@ -43,6 +43,16 @@ int haveMonotonicClock() {
 #endif
 }
 
+/* Monotonic timed waits requires the pthread_condattr_setclock() function,
+   and support for the monotonic clock at runtime. */
+int haveMonotonicTimedWait() {
+#ifdef HAVE_PTHREAD_CONDATTR_SETCLOCK
+    return haveMonotonicClock();
+#else
+    return 0;
+#endif
+}
+
 void getTimeoutAbsolute(struct timespec *ts, long long millis,
                         long long nanos) {
 
@@ -67,18 +77,37 @@ void getTimeoutAbsolute(struct timespec *ts, long long millis,
 
 void getTimeoutRelative(struct timespec *ts, long long millis,
                         long long nanos) {
-    struct timeval tv;
+    /* long long prevents overflow */
     long long seconds;
 
-    /* Get the current time */
-    gettimeofday(&tv, NULL);
+#if defined(HAVE_LIBRT) && defined(CLOCK_MONOTONIC)
+    if(haveMonotonicTimedWait()) {
+        struct timespec tp;
 
-    /* Calculate seconds (long long prevents overflow) */
-    seconds = tv.tv_sec + millis / 1000 + nanos / 1000000000;
+        /* Get the current time */
+        clock_gettime(CLOCK_MONOTONIC, &tp);
 
-    /* Calculate nanoseconds */
-    nanos %= 1000000000;
-    nanos += (tv.tv_usec + ((millis % 1000) * 1000)) * 1000;
+        /* Calculate seconds */
+        seconds = tp.tv_sec + millis / 1000 + nanos / 1000000000;
+
+        /* Calculate nanoseconds */
+        nanos %= 1000000000;
+        nanos += tp.tv_nsec + ((millis % 1000) * 1000000);
+    } else
+#endif
+    {
+        struct timeval tv;
+
+        /* Get the current time */
+        gettimeofday(&tv, NULL);
+
+        /* Calculate seconds */
+        seconds = tv.tv_sec + millis / 1000 + nanos / 1000000000;
+
+        /* Calculate nanoseconds */
+        nanos %= 1000000000;
+        nanos += (tv.tv_usec + ((millis % 1000) * 1000)) * 1000;
+    }
 
     /* Adjust values so that nanos is less than 1 second.
        This also prevents overflowing the timespec, as the

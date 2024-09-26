@@ -216,12 +216,31 @@ typedef pthread_mutex_t VMLock;
     classlibSetThreadState(self, RUNNING);                       \
 }
 
-#define timedWaitVMWaitLock(wait_lock, self, ms) {               \
+#if defined(HAVE_LIBRT) && defined(CLOCK_MONOTONIC)
+#define computeMonotonicTimeout(ts, ms) {                        \
+    struct timespec tp;                                          \
+    clock_gettime(CLOCK_MONOTONIC, &tp);                         \
+    ts.tv_sec = tp.tv_sec + ms/1000;                             \
+    ts.tv_nsec = tp.tv_nsec + ((ms%1000)*1000000);               \
+}
+#else
+#define computeMonotonicTimeout(ts, ms)
+#endif
+
+#define computeTODTimeout(ts, ms) {                              \
     struct timeval tv;                                           \
-    struct timespec ts;                                          \
     gettimeofday(&tv, 0);                                        \
     ts.tv_sec = tv.tv_sec + ms/1000;                             \
     ts.tv_nsec = (tv.tv_usec + ((ms%1000)*1000))*1000;           \
+}
+
+#define timedWaitVMWaitLock(wait_lock, self, ms) {               \
+    struct timespec ts;                                          \
+    if (haveMonotonicTimedWait()) {                              \
+        computeMonotonicTimeout(ts, ms);                         \
+    } else {                                                     \
+        computeTODTimeout(ts, ms);                               \
+    }                                                            \
     if(ts.tv_nsec > 999999999L) {                                \
         ts.tv_sec++;                                             \
         ts.tv_nsec -= 1000000000L;                               \
