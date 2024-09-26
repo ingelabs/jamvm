@@ -1291,6 +1291,10 @@ pthread_condattr_t *condAttr() {
 
 int initialiseThreadCondAttr() {
     pthread_condattr_init(&condattr);
+    if(!configureMonotonicCondAttr(&condattr)) {
+        jam_fprintf(stderr, "Monotonic clock not available. Changes to " \
+                            "the current date/time may affect scheduling.\n");
+    }
 
     return TRUE;
 }

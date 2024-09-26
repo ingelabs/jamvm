@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <time.h>
+#include <pthread.h>
 
 /* Configure options */
 #include "config.h"
@@ -1302,6 +1303,8 @@ extern int initialiseSymbol();
 /* time */
 
 extern int  haveMonotonicClock();
+extern int  configureMonotonicCondAttr(pthread_condattr_t *attr);
+extern int  haveMonotonicTimedWait();
 extern void getTimeoutAbsolute(struct timespec *ts, long long millis,
                                long long nanos);
 extern void getTimeoutRelative(struct timespec *ts, long long millis,
