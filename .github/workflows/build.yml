@@ -1,0 +1,81 @@
+name: Build
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  openjdk8:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Set up Java 8
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '8.0.382+5'
+          check-latest: false
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          NOCONFIGURE=1 ./autogen.sh
+          ./configure --prefix=/tmp/jamvm --with-java-runtime-library=openjdk8
+          make
+          make install
+
+      - name: Run JamVM with OpenJDK launcher
+        run: |
+          echo $JAVA_HOME
+          mkdir -p $JAVA_HOME/jre/lib/amd64/jamvm
+          cp /tmp/jamvm/lib/libjvm.so $JAVA_HOME/jre/lib/amd64/jamvm/
+          $JAVA_HOME/bin/java -XXaltjvm=jamvm -version
+
+  classpath:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get -qq install gettext libgtk2.0-dev
+
+      - name: Set up Java 8
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_8_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_8_X64/bin" >> "$GITHUB_PATH"
+
+      - name: Check out Classpath
+        uses: actions/checkout@v4
+        with:
+          repository: ingelabs/classpath
+          path: classpath
+
+      - name: Build GNU Classpath
+        run: |
+          cd classpath
+          ./autogen.sh
+          ./configure \
+            --disable-alsa \
+            --disable-dssi \
+            --disable-gconf-peer \
+            --enable-default-preferences-peer=file \
+            --disable-gtk-peer \
+            --disable-plugin \
+            --disable-examples \
+            --disable-tools \
+            --disable-gjdoc
+          make && sudo make install
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          NOCONFIGURE=1 ./autogen.sh
+          ./configure --prefix=/tmp/jamvm
+          make
+          make install
+
+      - name: Run JamVM
+        run: |
+          /tmp/jamvm/bin/jamvm -version
