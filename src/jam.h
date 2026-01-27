@@ -1303,6 +1303,7 @@ extern int initialiseSymbol();
 
 extern int  initialiseTime();
 extern int  haveMonotonicClock();
+extern int  haveMonotonicTimedWait();
 extern pthread_condattr_t *getRelativeWaitCondAttr();
 extern void getTimeoutAbsolute(struct timespec *ts, long long millis,
                                long long nanos);
