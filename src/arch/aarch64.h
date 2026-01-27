@@ -36,34 +36,36 @@
 
 #define COMPARE_AND_SWAP_64(addr, old_val, new_val)             \
 ({                                                              \
-    int result, read_val;                                       \
-    __asm__ __volatile__ ("                                     \
-        1:      ldaxr %2, %1;                                   \
-                cmp %2, %3;                                     \
-                b.ne 2f;                                        \
-                stlxr %w0, %4, %1;                              \
-                cmp %w0, wzr;                                   \
-                b.ne 1b;                                        \
-        2:      cset %w0, eq;"                                  \
+    int result;                                                 \
+    uintptr_t read_val;                                         \
+    __asm__ __volatile__ (                                      \
+        "1:     ldaxr %2, %1\n"                                 \
+        "       cmp %2, %3\n"                                   \
+        "       b.ne 2f\n"                                      \
+        "       stlxr %w0, %4, %1\n"                            \
+        "       cmp %w0, wzr\n"                                 \
+        "       b.ne 1b\n"                                      \
+        "2:     cset %w0, eq"                                   \
     : "=&r" (result), "+Q" (*addr), "=&r" (read_val)            \
-    : "r" (old_val), "r" (new_val)                              \
+    : "r" ((uintptr_t)(old_val)), "r" ((uintptr_t)(new_val))    \
     : "cc");                                                    \
     result;                                                     \
 })
 
 #define COMPARE_AND_SWAP_32(addr, old_val, new_val)             \
 ({                                                              \
-    int result, read_val;                                       \
-    __asm__ __volatile__ ("                                     \
-        1:      ldaxr %w2, %1;                                  \
-                cmp %w2, %w3;                                   \
-                b.ne 2f;                                        \
-                stlxr %w0, %w4, %1;                             \
-                cmp %w0, wzr;                                   \
-                b.ne 1b;                                        \
-        2:      cset %w0, eq;"                                  \
+    int result;                                                 \
+    uint32_t read_val;                                          \
+    __asm__ __volatile__ (                                      \
+        "1:     ldaxr %w2, %1\n"                                \
+        "       cmp %w2, %w3\n"                                 \
+        "       b.ne 2f\n"                                      \
+        "       stlxr %w0, %w4, %1\n"                           \
+        "       cmp %w0, wzr\n"                                 \
+        "       b.ne 1b\n"                                      \
+        "2:     cset %w0, eq"                                   \
     : "=&r" (result), "+Q" (*addr), "=&r" (read_val)            \
-    : "r" (old_val), "r" (new_val)                              \
+    : "r" ((uint32_t)(old_val)), "r" ((uint32_t)(new_val))      \
     : "cc");                                                    \
     result;                                                     \
 })
