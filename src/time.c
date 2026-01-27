@@ -18,74 +18,56 @@
  * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "config.h"
-
-#include <stdio.h>
 #include <sys/time.h>
 #include <time.h>
 #include <limits.h>
 #include <pthread.h>
 
-/* We use the monotonic clock if it is available.  As the clock_id may be
-   present but not actually supported, we check it on first use.
-   The initial value -1 means we have not yet checked. */
-#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
-static int have_monotonic_clock = -1;
-#endif
+#include "jam.h"
 
-int haveMonotonicClock() {
-#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
-    if (have_monotonic_clock == -1) {
-        struct timespec ts;
-        have_monotonic_clock = (clock_gettime(CLOCK_MONOTONIC, &ts) != -1);
-    }
-    return have_monotonic_clock;
-#else
-    return 0;
-#endif
-}
+/* Whether the monotonic clock is available. As the clock_id may be
+   present but not actually supported, we must probe at runtime. */
+static int have_monotonic_clock = 0;
 
-/* Attributes for condvars used for relative timed waits */
+/* Monotonic timed waits require the pthread_condattr_setclock() function,
+   and support for the monotonic clock at runtime. */
+static int have_monotonic_timedwait = 0;
+
+/* Attributes for condvars used for relative timed waits, if monotonic
+   timed waits are available. */
 static pthread_condattr_t condattr;
 
-/* Monotonic timed waits requires the pthread_condattr_setclock() function,
-   and support for the monotonic clock at runtime. */
-#if defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined(CLOCK_MONOTONIC)
-static int have_monotonic_timedwait = 0;
-#endif
-
-int configureMonotonicCondAttr(pthread_condattr_t *attr) {
-#if defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined(CLOCK_MONOTONIC)
-    if(haveMonotonicClock()) {
-        if (pthread_condattr_setclock(attr, CLOCK_MONOTONIC) == 0) {
-            have_monotonic_timedwait = 1;
-            return 1;
-        }
-    }
-#endif
-    return 0;
+int haveMonotonicClock() {
+    return have_monotonic_clock;
 }
 
 int haveMonotonicTimedWait() {
-#if defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && defined(CLOCK_MONOTONIC)
     return have_monotonic_timedwait;
-#else
-    return 0;
-#endif
+}
+
+pthread_condattr_t *getRelativeWaitCondAttr() {
+    return have_monotonic_timedwait ? &condattr : NULL;
 }
 
 int initialiseTime() {
-    pthread_condattr_init(&condattr);
-    if(!configureMonotonicCondAttr(&condattr)) {
+#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
+    struct timespec ts;
+    have_monotonic_clock = (clock_gettime(CLOCK_MONOTONIC, &ts) != -1);
+
+#if defined(HAVE_PTHREAD_CONDATTR_SETCLOCK)
+    if(have_monotonic_clock) {
+        pthread_condattr_init(&condattr);
+        if (pthread_condattr_setclock(&condattr, CLOCK_MONOTONIC) == 0)
+            have_monotonic_timedwait = 1;
+    }
+#endif
+#endif
+    if(!have_monotonic_timedwait) {
         jam_fprintf(stderr, "Monotonic clock not available. Changes to " \
                             "the current date/time may affect scheduling.\n");
     }
 
     return 1;
-}
-
-pthread_condattr_t *getRelativeWaitCondAttr() {
-    return &condattr;
 }
 
 void getTimeoutAbsolute(struct timespec *ts, long long millis,
