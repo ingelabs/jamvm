@@ -47,6 +47,7 @@ arm*-*-linux*) host_cpu=arm host_os=linux interp_cflags=-marm ;;
 arm*-*-openbsd*) host_cpu=arm host_os=bsd libdl_needed=no ;;
 arm*-*-freebsd*) host_cpu=arm host_os=bsd libdl_needed=no ;;
 aarch64*-*-linux*) host_cpu=aarch64 host_os=linux ;;
+aarch64*-*-darwin*) host_cpu=aarch64 host_os=darwin libdl_needed=no ;;
 powerpc*-*-linux*) host_cpu=powerpc host_os=linux ;;
 powerpc*-*-openbsd*) host_cpu=powerpc host_os=bsd libdl_needed=no ;;
 powerpc*-*-freebsd*) host_cpu=powerpc host_os=bsd libdl_needed=no ;;
@@ -434,6 +435,7 @@ AC_CONFIG_FILES(
     src/os/linux/aarch64/Makefile \
     src/os/darwin/i386/Makefile \
     src/os/darwin/arm/Makefile \
+    src/os/darwin/aarch64/Makefile \
     src/os/darwin/powerpc/Makefile \
     src/os/bsd/powerpc/Makefile \
     src/os/bsd/arm/Makefile \
