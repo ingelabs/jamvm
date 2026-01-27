@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <time.h>
+#include <pthread.h>
 
 /* Configure options */
 #include "config.h"
@@ -1171,7 +1172,6 @@ extern char *convertSig2Simple(char *sig);
 
 /* Threading */
 
-extern int initialiseThreadCondAttr();
 extern int initialiseThreadStage1(InitArgs *args);
 extern int initialiseThreadStage2(InitArgs *args);
 extern ExecEnv *getExecEnv();
@@ -1301,7 +1301,9 @@ extern int initialiseSymbol();
 
 /* time */
 
+extern int  initialiseTime();
 extern int  haveMonotonicClock();
+extern pthread_condattr_t *getRelativeWaitCondAttr();
 extern void getTimeoutAbsolute(struct timespec *ts, long long millis,
                                long long nanos);
 extern void getTimeoutRelative(struct timespec *ts, long long millis,

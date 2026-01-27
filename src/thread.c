@@ -56,9 +56,6 @@ static pthread_cond_t cv;
 static pthread_mutex_t exit_lock;
 static pthread_cond_t exit_cv;
 
-/* Attributes for condvars used for (relative) timed waits */
-static pthread_condattr_t condattr;
-
 /* Monitor for sleeping threads to do a timed-wait against */
 static Monitor sleep_mon;
 
@@ -493,14 +490,14 @@ void initThread(Thread *thread, char is_daemon, void *stack_base) {
 
     /* Initialise wait condvar (the condvar is per-thread,
        not per-monitor) */
-    pthread_cond_init(&thread->wait_cv, &condattr);
+    pthread_cond_init(&thread->wait_cv, getRelativeWaitCondAttr());
 
     /* Initialise per-thread lock/condvar used for parking
        and set initial park state */
     thread->park_state = PARK_RUNNING;
     thread->park_mono = 0;
     pthread_cond_init(&thread->park_cv, NULL);
-    pthread_cond_init(&thread->park_cv_mono, &condattr);
+    pthread_cond_init(&thread->park_cv_mono, getRelativeWaitCondAttr());
     pthread_mutex_init(&thread->park_lock, NULL);
 
     /* Record the thread's stack base */
@@ -1285,16 +1282,6 @@ void mainThreadSetContextClassLoader(Object *loader) {
         INST_DATA(main_ee.thread, Object*, fb->u.offset) = loader;
 }
 
-pthread_condattr_t *condAttr() {
-    return &condattr;
-}
-
-int initialiseThreadCondAttr() {
-    pthread_condattr_init(&condattr);
-
-    return TRUE;
-}
-
 int initialiseThreadStage1(InitArgs *args) {
     size_t size;
 
@@ -1337,11 +1324,11 @@ int initialiseThreadStage1(InitArgs *args) {
     initialiseJavaStack(&main_ee);
     setThreadSelf(&main_thread);
 
-    pthread_cond_init(&main_thread.wait_cv, &condattr);
+    pthread_cond_init(&main_thread.wait_cv, getRelativeWaitCondAttr());
 
     main_thread.park_state = PARK_RUNNING;
     main_thread.park_mono = 0;
-    pthread_cond_init(&main_thread.park_cv_mono, &condattr);
+    pthread_cond_init(&main_thread.park_cv_mono, getRelativeWaitCondAttr());
     pthread_cond_init(&main_thread.park_cv, NULL);
     pthread_mutex_init(&main_thread.park_lock, NULL);
 

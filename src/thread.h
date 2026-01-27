@@ -167,8 +167,6 @@ extern Object *runningThreadStackTrace(Thread *thread, int max_depth,
 extern Object *runningThreadObjects();
 extern void printThreadsDump(Thread *self);
 
-extern pthread_condattr_t *condAttr();
-
 #define disableSuspend(thread)             \
 {                                          \
     sigjmp_buf *env;                       \
@@ -191,9 +189,9 @@ typedef struct {
 typedef pthread_mutex_t VMLock;
 
 #define initVMLock(lock) pthread_mutex_init(&lock, NULL)
-#define initVMWaitLock(wait_lock) {                 \
-    pthread_mutex_init(&wait_lock.lock, NULL);      \
-    pthread_cond_init(&wait_lock.cv, condAttr());   \
+#define initVMWaitLock(wait_lock) {                              \
+    pthread_mutex_init(&wait_lock.lock, NULL);                   \
+    pthread_cond_init(&wait_lock.cv, getRelativeWaitCondAttr()); \
 }
 
 #define lockVMLock(lock, self) {                \

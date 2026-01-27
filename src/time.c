@@ -23,6 +23,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <limits.h>
+#include <pthread.h>
 
 /* We use the monotonic clock if it is available.  As the clock_id may be
    present but not actually supported, we check it on first use.
@@ -41,6 +42,19 @@ int haveMonotonicClock() {
 #else
     return 0;
 #endif
+}
+
+/* Attributes for condvars used for relative timed waits */
+static pthread_condattr_t condattr;
+
+int initialiseTime() {
+    pthread_condattr_init(&condattr);
+
+    return 1;
+}
+
+pthread_condattr_t *getRelativeWaitCondAttr() {
+    return &condattr;
 }
 
 void getTimeoutAbsolute(struct timespec *ts, long long millis,
@@ -91,4 +105,3 @@ void getTimeoutRelative(struct timespec *ts, long long millis,
     ts->tv_sec = seconds > LONG_MAX ? LONG_MAX : seconds;
     ts->tv_nsec = nanos;
 }
-
