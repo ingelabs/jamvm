@@ -38,6 +38,7 @@ int nativeExtraArg(MethodBlock *mb) {
                 stack_args += 8;
             else
                 fp_args--;
+            break;
 
         default:
             if(int_args == 0)
