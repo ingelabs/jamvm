@@ -1,0 +1,47 @@
+# Object files and libraries
+
+*.o
+*.la
+*.lo
+
+# Autotools
+
+config.h
+config.h.in
+
+Makefile
+Makefile.in
+
+.deps/
+.libs/
+
+m4/*
+aclocal.m4
+autom4te.cache
+compile
+config.guess
+config.log
+config.status
+config.sub
+configure
+depcomp
+install-sh
+libtool
+ltmain.sh
+missing
+mkinstalldirs
+stamp-h1
+*~
+
+# JamVM-specific
+
+src/arch.h
+src/jamvm
+src/classlib-defs.h
+src/classlib-excep.h
+src/classlib-symbol.h
+src/classlib.h
+src/classlib/gnuclasspath/lib/classes.zip
+src/classlib/gnuclasspath/lib/inst_classes.zip
+src/interp/engine/compute_relocatability
+src/interp/relocatability.inc
