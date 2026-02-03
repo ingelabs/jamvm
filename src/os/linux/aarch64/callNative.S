@@ -64,7 +64,7 @@ callJNIMethod:
         mov     x29, sp
         stp     x19, x20, [x29, #16]
 
-        sub     sp, sp, w3              /* allocate room for stacked args */
+        sub     sp, sp, w3, uxtw        /* allocate room for stacked args */
         mov     x14, sp
 
         mov     x20, x4                 /* preserve ostack */
