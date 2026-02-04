@@ -277,6 +277,12 @@ fi
 
 AC_CHECK_PROGS(JAVAC, ecj jikes "gcj -C" javac)
 
+case "$JAVAC" in
+    javac) JAVAC_FLAGS="-source 1.6 -target 1.6" ;;
+    *)     JAVAC_FLAGS="" ;;
+esac
+AC_SUBST(JAVAC_FLAGS)
+
 dnl Checks for libraries.
 
 dnl Prefer libthr to libpthread (for FreeBSD)
