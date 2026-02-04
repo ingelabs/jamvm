@@ -275,7 +275,7 @@ if test "$using_clang" = yes; then
     interp_cflags="$interp_cflags -mllvm -tail-dup-limit=0"
 fi
 
-AC_CHECK_PROGS(JAVAC, ecj jikes "gcj -C" javac)
+AC_CHECK_PROGS(JAVAC, ecj javac)
 
 dnl Checks for libraries.
 
