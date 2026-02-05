@@ -312,23 +312,23 @@ opc##x##_##y##_##z:
     DEF_OPC(opcode, 0, ({BODY});)
         
 #define DEF_OPC_JMP(TYPE, BODY)                 \
-    DEF_OPC_LBLS(OPC_##TYPE, 2, /**/, ({        \
+    DEF_OPC_LBLS(OPC_##TYPE, 2, /**/, {         \
         *ostack++ = cache.i.v1;                 \
         *ostack++ = cache.i.v2;                 \
         BODY                                    \
         BRANCH(TYPE, 2, TRUE);                  \
-    });)                                        \
+    })                                          \
                                                 \
-    DEF_OPC_LBLS(OPC_##TYPE, 1, /**/, ({        \
+    DEF_OPC_LBLS(OPC_##TYPE, 1, /**/, {         \
         *ostack++ = cache.i.v1;                 \
         BODY                                    \
         BRANCH(TYPE, 1, TRUE);                  \
-    });)                                        \
+    })                                          \
                                                 \
-    DEF_OPC_LBLS(OPC_##TYPE, 0, /**/, ({        \
+    DEF_OPC_LBLS(OPC_##TYPE, 0, /**/, {         \
         BODY                                    \
         BRANCH(TYPE, 0, TRUE);                  \
-    });)
+    })
 
 #define RW_LABEL(opcode, lbl)                   \
     label(opcode, 0, lbl)                       \
@@ -347,10 +347,10 @@ opc##x##_##y##_##z:
     DEF_OPC(opcode, 0, BODY)
 
 #define DEF_OPC_JMP(TYPE, BODY)                 \
-    DEF_OPC_LBLS(OPC_##TYPE, 0, /**/, ({        \
+    DEF_OPC_LBLS(OPC_##TYPE, 0, /**/, {         \
         BODY                                    \
         BRANCH(TYPE, 0, TRUE);                  \
-    });)
+    })
 
 #define RW_LABEL(opcode, lbl)                   \
     label(opcode, 0, lbl)
