@@ -36,7 +36,7 @@ unsigned char aarch64_instruction_cache_line_len;
 uintptr_t aarch64_instruction_cache_line_mask;
 
 void initialisePlatform() {
-    unsigned int cache_type;
+    unsigned long cache_type;
 
     /* Extract information from the cache-type register, which describes aspects
        of the host's cache configuration */
