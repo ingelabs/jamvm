@@ -254,6 +254,26 @@ dnl Checks for programs.
 AC_PROG_CC
 AM_PROG_AS
 
+dnl Check if we're using clang - needed for workarounds
+AC_MSG_CHECKING([whether compiler is clang])
+AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([], [[
+        #ifndef __clang__
+            #error not clang
+        #endif
+    ]])],
+    [using_clang=yes],
+    [using_clang=no])
+AC_MSG_RESULT([$using_clang])
+
+dnl Clang's TailDuplication pass has exponential time complexity with the
+dnl computed goto dispatch pattern used in the interpreter.  Disable tail
+dnl duplication (for interp.c only) to prevent the hang while keeping all
+dnl other LLVM optimizations intact.
+if test "$using_clang" = yes; then
+    interp_cflags="$interp_cflags -mllvm -tail-dup-limit=0"
+fi
+
 AC_CHECK_PROGS(JAVAC, ecj jikes "gcj -C" javac)
 
 dnl Checks for libraries.
