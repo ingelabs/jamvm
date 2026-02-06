@@ -38,13 +38,13 @@
 ({                                                              \
     int result, read_val;                                       \
     __asm__ __volatile__ ("                                     \
-        1:      ldaxr %2, %1;                                   \
-                cmp %2, %3;                                     \
-                b.ne 2f;                                        \
-                stlxr %w0, %4, %1;                              \
-                cmp %w0, wzr;                                   \
-                b.ne 1b;                                        \
-        2:      cset %w0, eq;"                                  \
+        1:      ldaxr %2, %1\n                                  \
+                cmp %2, %3\n                                    \
+                b.ne 2f\n                                       \
+                stlxr %w0, %4, %1\n                             \
+                cmp %w0, wzr\n                                  \
+                b.ne 1b\n                                       \
+        2:      cset %w0, eq"                                   \
     : "=&r" (result), "+Q" (*addr), "=&r" (read_val)            \
     : "r" (old_val), "r" (new_val)                              \
     : "cc");                                                    \
@@ -55,13 +55,13 @@
 ({                                                              \
     int result, read_val;                                       \
     __asm__ __volatile__ ("                                     \
-        1:      ldaxr %w2, %1;                                  \
-                cmp %w2, %w3;                                   \
-                b.ne 2f;                                        \
-                stlxr %w0, %w4, %1;                             \
-                cmp %w0, wzr;                                   \
-                b.ne 1b;                                        \
-        2:      cset %w0, eq;"                                  \
+        1:      ldaxr %w2, %1\n                                 \
+                cmp %w2, %w3\n                                  \
+                b.ne 2f\n                                       \
+                stlxr %w0, %w4, %1\n                            \
+                cmp %w0, wzr\n                                  \
+                b.ne 1b\n                                       \
+        2:      cset %w0, eq"                                   \
     : "=&r" (result), "+Q" (*addr), "=&r" (read_val)            \
     : "r" (old_val), "r" (new_val)                              \
     : "cc");                                                    \
@@ -75,7 +75,7 @@
 ({                                                              \
     uintptr_t result;                                           \
     __asm__ __volatile__ ("                                     \
-                ldar %0, %1;"                                   \
+                ldar %0, %1"                                   \
     : "=r" (result)                                             \
     : "Q" (*addr)                                               \
     : "cc");                                                    \
@@ -85,7 +85,7 @@
 #define LOCKWORD_WRITE(addr, value)                             \
 ({                                                              \
     __asm__ __volatile__ ("                                     \
-                stlr %1, %0;"                                   \
+                stlr %1, %0"                                   \
     : "=Q" (*addr)                                              \
     : "r" (value)                                               \
     : "cc");                                                    \
@@ -112,7 +112,7 @@
         i += aarch64_instruction_cache_line_len)                \
         __asm__ ("ic ivau, %0" :: "r" (i));                     \
                                                                 \
-    __asm__ ("dsb ish; isb");                                   \
+    __asm__ ("dsb ish\n isb");                                   \
 }
 
 #define GEN_REL_JMP(target_addr, patch_addr, patch_size)        \
