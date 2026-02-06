@@ -36,7 +36,8 @@
 
 #define COMPARE_AND_SWAP_64(addr, old_val, new_val)             \
 ({                                                              \
-    int result, read_val;                                       \
+    int result;                                                 \
+    uintptr_t read_val;                                         \
     __asm__ __volatile__ ("                                     \
         1:      ldaxr %2, %1\n                                  \
                 cmp %2, %3\n                                    \
@@ -46,7 +47,7 @@
                 b.ne 1b\n                                       \
         2:      cset %w0, eq"                                   \
     : "=&r" (result), "+Q" (*addr), "=&r" (read_val)            \
-    : "r" (old_val), "r" (new_val)                              \
+    : "r" ((uintptr_t)(old_val)), "r" ((uintptr_t)(new_val))    \
     : "cc");                                                    \
     result;                                                     \
 })
@@ -87,7 +88,7 @@
     __asm__ __volatile__ ("                                     \
                 stlr %1, %0"                                   \
     : "=Q" (*addr)                                              \
-    : "r" (value)                                               \
+    : "r" ((uintptr_t)(value))                                  \
     : "cc");                                                    \
 })
 
