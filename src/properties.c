@@ -25,6 +25,10 @@
 #include <unistd.h>
 #include <sys/utsname.h>
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 #include "jam.h"
 #include "symbol.h"
 #include "hash.h"
@@ -161,7 +165,11 @@ void setOSProperties(Object *properties) {
 
     uname(&info);
     setProperty(properties, "os.arch", OS_ARCH);
+#if defined(__APPLE__) && !TARGET_OS_IPHONE
+    setProperty(properties, "os.name", "Mac OS X");
+#else
     setProperty(properties, "os.name", info.sysname);
+#endif
     setProperty(properties, "os.version", info.release);
 }
 
