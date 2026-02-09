@@ -53,6 +53,7 @@ extern char *symbol_values[];
     action(initCause, "initCause"), \
     action(loadClass, "loadClass"), \
     action(returnType, "returnType"), \
+    action(classLoader, "classLoader"), \
     action(declaringClass, "declaringClass"), \
     action(parameterTypes, "parameterTypes"), \
     action(printStackTrace, "printStackTrace"), \

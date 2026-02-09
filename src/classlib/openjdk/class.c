@@ -26,6 +26,11 @@
 #include "excep.h"
 #include "symbol.h"
 
+/* Cached offset of classLoader field in java.lang.Class.
+   Since JDK-6642881, Class.getClassLoader0() reads this
+   field directly rather than calling a native method. */
+static int cls_classLoader_offset = -1;
+
 /* Cached offset of classes field in java.lang.ClassLoader objects */
 int ldr_classes_offset;
 int ldr_parent_offset;
@@ -51,6 +56,18 @@ void classlibCacheClassLoaderFields(Class *loader_class) {
 
     ldr_classes_offset = classes_fb->u.offset;
     ldr_parent_offset = parent_fb->u.offset;
+}
+
+void classlibCacheClassFields(Class *class) {
+    FieldBlock *cl_fb = findField(class, SYMBOL(classLoader),
+                                  SYMBOL(sig_java_lang_ClassLoader));
+    if(cl_fb != NULL)
+        cls_classLoader_offset = cl_fb->u.offset;
+}
+
+void classlibSetClassLoader(Class *class, Object *loader) {
+    if(loader != NULL && cls_classLoader_offset != -1)
+        INST_DATA(class, Object*, cls_classLoader_offset) = loader;
 }
 
 HashTable *classlibLoaderTable(Object *class_loader) {

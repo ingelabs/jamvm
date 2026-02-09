@@ -53,6 +53,8 @@ extern void classlibSignalThread(Thread *self);
     /* NOTHING TO DO */ TRUE
 
 extern void classlibCacheClassLoaderFields(Class *loader_class);
+extern void classlibCacheClassFields(Class *class);
+extern void classlibSetClassLoader(Class *class, Object *loader);
 extern HashTable *classlibLoaderTable(Object *class_loader);
 extern HashTable *classlibCreateLoaderTable(Object *class_loader);
 extern Object *classlibBootPackage(PackageEntry *entry);

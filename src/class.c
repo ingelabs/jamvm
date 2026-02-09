@@ -379,6 +379,7 @@ Class *parseClass(char *classname, char *data, int offset, int len,
     }
 
     classblock->class_loader = class_loader;
+    classlibSetClassLoader(class, class_loader);
 
     READ_U2(intf_count = classblock->interfaces_count, ptr, len);
     interfaces = classblock->interfaces =
@@ -813,6 +814,7 @@ Class *createArrayClass(char *classname, Object *class_loader) {
 
     /* The array's classloader is the loader of the element class */
     classblock->class_loader = elem_cb->class_loader;
+    classlibSetClassLoader(class, elem_cb->class_loader);
 
     /* The array's visibility (i.e. public, etc.) is that of the element */
     classblock->access_flags = (elem_cb->access_flags & ~ACC_INTERFACE) |
@@ -1473,6 +1475,9 @@ void linkClass(Class *class) {
        classlibCacheClassLoaderFields(class);
        cb->flags |= CLASS_LOADER;
    }
+
+   if(cb->flags & CLASS_CLASS)
+       classlibCacheClassFields(class);
 
    cb->state = CLASS_LINKED;
 

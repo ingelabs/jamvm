@@ -76,6 +76,9 @@ extern void classlibNewLibraryUnloader(Object *class_loader, void *entry);
 #define classlibSkipReflectionLoader(loader) \
     loader
 
+#define classlibCacheClassFields(class) {}
+#define classlibSetClassLoader(class, loader) {}
+
 #define classlibInjectedFieldsCount(classname) 0
 #define classlibFillInInjectedFields(classname, field) {}
 
