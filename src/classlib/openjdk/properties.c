@@ -27,10 +27,19 @@ char *classlibDefaultJavaHome() {
     int count = 0;
     char *home;
 
-    while(pntr > path && count < 4)
+    /* Derive java.home from the location of libjvm.
+       Default (most platforms): <java.home>/lib/<arch>/<vmname>/libjvm.so
+       Darwin (no arch subdir):  <java.home>/lib/<vmname>/libjvm.dylib */
+#ifdef __APPLE__
+    int n_sep = 3;
+#else
+    int n_sep = 4;
+#endif
+
+    while(pntr > path && count < n_sep)
         count += *--pntr == '/';
 
-    if(count != 4) {
+    if(count != n_sep) {
         printf("Error: JVM path malformed.   Aborting VM.\n");
         exitVM(1);
     }

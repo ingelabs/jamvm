@@ -43,9 +43,18 @@ int classlibInitialiseDll() {
 
 char *classlibDefaultBootDllPath() {
     char *java_home = getJavaHome();
+
+    /* On most platforms, native libraries are in lib/<arch>/.
+       On Darwin, they are directly in lib/. */
+#ifdef __APPLE__
+    char *dll_path = sysMalloc(strlen(java_home) + sizeof("/lib"));
+
+    return strcat(strcpy(dll_path, java_home), "/lib");
+#else
     char *dll_path = sysMalloc(strlen(java_home) + sizeof("/lib/"OS_ARCH));
 
     return strcat(strcpy(dll_path, java_home), "/lib/"OS_ARCH);
+#endif
 }
 
 void *classlibLookupLoadedDlls(char *name, Object *loader) {
