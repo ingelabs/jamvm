@@ -378,6 +378,14 @@ fi
 
 AC_SUBST(classlib)
 
+dnl On Darwin, the OpenJDK class library's native libraries (e.g. libjava)
+dnl reference libjvm via @rpath/libjvm.dylib.  Set our install name to match
+dnl so that dyld resolves the dependency.
+if test "$classlib" = openjdk -a "$host_os" = darwin; then
+    LIBJVM_EXTRA_LDFLAGS="-Wl,-install_name,@rpath/libjvm.dylib"
+fi
+AC_SUBST(LIBJVM_EXTRA_LDFLAGS)
+
 case "$with_java_runtime_library" in
     gnuclasspath | openjdk6 )
         AC_DEFINE([SHARED_CHAR_BUFFERS],1,

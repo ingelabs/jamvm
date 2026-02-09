@@ -42,7 +42,7 @@ libjvm_la_SOURCES =
 
 jamvm_LDADD = libcore.la
 libjvm_la_LIBADD = libcore.la
-libjvm_la_LDFLAGS = -avoid-version
+libjvm_la_LDFLAGS = -avoid-version @LIBJVM_EXTRA_LDFLAGS@
 libcore_la_LIBADD = interp/libinterp.la os/@os@/@arch@/libnative.la \
                     os/@os@/libos.la classlib/@classlib@/libclasslib.la
 
