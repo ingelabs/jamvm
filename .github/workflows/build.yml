@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  openjdk8:
+  openjdk8-linux:
     runs-on: ubuntu-24.04
     steps:
       - name: Set up Java 8
@@ -26,10 +26,62 @@ jobs:
 
       - name: Run JamVM with OpenJDK launcher
         run: |
-          echo $JAVA_HOME
           mkdir -p $JAVA_HOME/jre/lib/amd64/jamvm
           cp /tmp/jamvm/lib/libjvm.so $JAVA_HOME/jre/lib/amd64/jamvm/
           $JAVA_HOME/bin/java -XXaltjvm=jamvm -version
+
+      - name: Check out Malva
+        uses: actions/checkout@v4
+        with:
+          repository: ingelabs/malva
+          path: malva
+
+      - name: Run tests
+        run: |
+          cd malva
+          JAVA="$JAVA_HOME/bin/java -XXaltjvm=jamvm" make check
+
+  openjdk8-macos:
+    runs-on: macos-15
+    steps:
+      - name: Set up Java 8
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: '8.0.482+8'
+          check-latest: false
+
+      - name: Install dependencies
+        run: |
+          brew install automake libtool
+          echo "$(brew --prefix libtool)/libexec/gnubin" >> $GITHUB_PATH
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          NOCONFIGURE=1 ./autogen.sh
+          ./configure --prefix=/tmp/jamvm --with-java-runtime-library=openjdk8
+          make
+          make install
+
+      - name: Run JamVM with OpenJDK launcher
+        run: |
+          mkdir -p $JAVA_HOME/jre/lib/jamvm
+          cp /tmp/jamvm/lib/libjvm.dylib $JAVA_HOME/jre/lib/jamvm/
+          $JAVA_HOME/bin/java -XXaltjvm=jamvm -version
+
+      - name: Check out Malva
+        uses: actions/checkout@v4
+        with:
+          repository: ingelabs/malva
+          path: malva
+
+      - name: Run tests
+        run: |
+          cd malva
+          JAVA="$JAVA_HOME/bin/java -XXaltjvm=jamvm" make check
 
   classpath:
     runs-on: ubuntu-24.04
@@ -72,10 +124,20 @@ jobs:
       - name: Build
         run: |
           NOCONFIGURE=1 ./autogen.sh
-          ./configure --prefix=/tmp/jamvm
-          make
-          make install
+          ./configure
+          make && sudo make install
 
       - name: Run JamVM
         run: |
-          /tmp/jamvm/bin/jamvm -version
+          /usr/local/jamvm/bin/jamvm -version
+
+      - name: Check out Malva
+        uses: actions/checkout@v4
+        with:
+          repository: ingelabs/malva
+          path: malva
+
+      - name: Run tests
+        run: |
+          cd malva
+          JAVA=/usr/local/jamvm/bin/jamvm make check
