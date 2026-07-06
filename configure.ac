@@ -292,6 +292,7 @@ AC_CHECK_LIB(thr,pthread_self,,[
 
 AC_CHECK_LIB(rt,clock_gettime,,)
 AC_CHECK_FUNCS([clock_gettime])
+AC_CHECK_FUNCS([pthread_condattr_setclock])
 
 AC_CHECK_LIB(m,fmod,,AC_MSG_ERROR(libm is missing))
 

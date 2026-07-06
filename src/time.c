@@ -25,15 +25,43 @@
 
 #include "jam.h"
 
+#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC) && \
+    defined(HAVE_PTHREAD_CONDATTR_SETCLOCK)
+#define MONOTONIC_CONDWAIT
+#endif
+
 /* We use the monotonic clock if it is available.  As the clock_id may be
    present but not actually supported, we check it on startup */
 static int have_monotonic_clock = FALSE;
+
+/* For relative timeouts, additionally check that condvars can be bound
+   to the monotonic clock */
+static int have_monotonic_condwait = FALSE;
+
+#ifdef MONOTONIC_CONDWAIT
+static pthread_condattr_t monotonic_condattr;
+#endif
 
 int initialiseTime() {
 #if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
     struct timespec ts;
     have_monotonic_clock = (clock_gettime(CLOCK_MONOTONIC, &ts) != -1);
+
+#ifdef MONOTONIC_CONDWAIT
+    if(have_monotonic_clock &&
+              pthread_condattr_init(&monotonic_condattr) == 0) {
+        if(pthread_condattr_setclock(&monotonic_condattr,
+                                     CLOCK_MONOTONIC) == 0)
+            have_monotonic_condwait = TRUE;
+        else
+            pthread_condattr_destroy(&monotonic_condattr);
+    }
 #endif
+#endif
+
+    if(!have_monotonic_condwait)
+        jam_fprintf(stderr, "Monotonic clock not available. Changes to "
+                            "the current date/time may affect scheduling.\n");
 
     return TRUE;
 }
@@ -44,6 +72,10 @@ int haveMonotonicClock() {
 
 /* Initialise a condition variable to be used for relative timed waits */
 int initReltimeCondVar(pthread_cond_t *cv) {
+#ifdef MONOTONIC_CONDWAIT
+    if(have_monotonic_condwait)
+        return pthread_cond_init(cv, &monotonic_condattr);
+#endif
     return pthread_cond_init(cv, NULL);
 }
 
@@ -71,18 +103,36 @@ void getTimeoutAbsolute(struct timespec *ts, long long millis,
 
 void getTimeoutRelative(struct timespec *ts, long long millis,
                         long long nanos) {
-    struct timeval tv;
     long long seconds;
 
-    /* Get the current time */
-    gettimeofday(&tv, NULL);
+#ifdef MONOTONIC_CONDWAIT
+    if(have_monotonic_condwait) {
+        struct timespec now;
 
-    /* Calculate seconds (long long prevents overflow) */
-    seconds = tv.tv_sec + millis / 1000 + nanos / 1000000000;
+        /* Get the current time */
+        clock_gettime(CLOCK_MONOTONIC, &now);
 
-    /* Calculate nanoseconds */
-    nanos %= 1000000000;
-    nanos += (tv.tv_usec + ((millis % 1000) * 1000)) * 1000;
+        /* Calculate seconds (long long prevents overflow) */
+        seconds = now.tv_sec + millis / 1000 + nanos / 1000000000;
+
+        /* Calculate nanoseconds */
+        nanos %= 1000000000;
+        nanos += now.tv_nsec + (millis % 1000) * 1000000;
+    } else
+#endif
+    {
+        struct timeval tv;
+
+        /* Get the current time */
+        gettimeofday(&tv, NULL);
+
+        /* Calculate seconds (long long prevents overflow) */
+        seconds = tv.tv_sec + millis / 1000 + nanos / 1000000000;
+
+        /* Calculate nanoseconds */
+        nanos %= 1000000000;
+        nanos += (tv.tv_usec + ((millis % 1000) * 1000)) * 1000;
+    }
 
     /* Adjust values so that nanos is less than 1 second.
        This also prevents overflowing the timespec, as the
@@ -91,7 +141,8 @@ void getTimeoutRelative(struct timespec *ts, long long millis,
     nanos %= 1000000000;
 
     /* If seconds is too big to fit into the timespec use the
-       maximum value (year 2038) */
+       maximum value (for 32-bit time_t and realtime clock,
+       year 2038) */
     ts->tv_sec = seconds > LONG_MAX ? LONG_MAX : seconds;
     ts->tv_nsec = nanos;
 }
