@@ -99,6 +99,7 @@ int initVM(InitArgs *args) {
 
     status = initialiseHooks(args) &&
              initialiseProperties(args) &&
+             initialiseTime() &&
              initialiseAlloc(args) &&
              initialiseThreadStage1(args) &&
              initialiseUtf8() &&
