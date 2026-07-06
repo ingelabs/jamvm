@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <time.h>
+#include <pthread.h>
 
 /* Configure options */
 #include "config.h"
@@ -1306,6 +1307,7 @@ extern void getTimeoutAbsolute(struct timespec *ts, long long millis,
                                long long nanos);
 extern void getTimeoutRelative(struct timespec *ts, long long millis,
                                long long nanos);
+extern int initReltimeCondVar(pthread_cond_t *cv);
 
 /* sig */
 

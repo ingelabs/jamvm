@@ -248,15 +248,19 @@ void threadPark(Thread *self, int absolute, long long time) {
         disableSuspend(self);
 
         if(time) {
+            pthread_cond_t *cv;
             struct timespec ts;
 
-            if(absolute)
+            if(absolute) {
                 getTimeoutAbsolute(&ts, time, 0);
-            else
+                cv = &self->park_cv_abs;
+            } else {
                 getTimeoutRelative(&ts, 0, time);
+                cv = &self->park_cv;
+            }
 
             classlibSetThreadState(self, TIMED_PARKED);
-            pthread_cond_timedwait(&self->park_cv, &self->park_lock, &ts);
+            pthread_cond_timedwait(cv, &self->park_lock, &ts);
 
             /* On Linux/i386 systems using LinuxThreads, pthread_cond_timedwait
                is implemented using sigjmp/longjmp.  This resets the fpu
@@ -265,6 +269,7 @@ void threadPark(Thread *self, int absolute, long long time) {
 
             FPU_HACK;
         } else {
+            /* Arbitrary choice of condvar when not timed */
             classlibSetThreadState(self, PARKED);
             pthread_cond_wait(&self->park_cv, &self->park_lock);
         }
@@ -294,11 +299,16 @@ void threadUnpark(Thread *thread) {
         /* If another thread has given a permit while we were
            waiting for the lock do nothing.  Else increase the
            state by one (BLOCKED -> RUNNING, RUNNING -> PERMIT)
-           and if the thread was blocked signal it */
+           and if the thread was blocked signal it.  The thread
+           waits on park_cv or park_cv_abs depending on the type
+           of timeout; signalling an un-waited condvar is harmless
+           and cheap, so simply signal both */
 
         if(thread->park_state != PARK_PERMIT &&
-                  thread->park_state++ == PARK_BLOCKED)
+                  thread->park_state++ == PARK_BLOCKED) {
             pthread_cond_signal(&thread->park_cv);
+            pthread_cond_signal(&thread->park_cv_abs);
+        }
 
         pthread_mutex_unlock(&thread->park_lock);
     }
@@ -483,12 +493,13 @@ void initThread(Thread *thread, char is_daemon, void *stack_base) {
 
     /* Initialise wait condvar (the condvar is per-thread,
        not per-monitor) */
-    pthread_cond_init(&thread->wait_cv, NULL);
+    initReltimeCondVar(&thread->wait_cv);
 
-    /* Initialise per-thread lock/condvar used for parking
+    /* Initialise per-thread lock/condvars used for parking
        and set initial park state */
     thread->park_state = PARK_RUNNING;
-    pthread_cond_init(&thread->park_cv, NULL);
+    initReltimeCondVar(&thread->park_cv);
+    pthread_cond_init(&thread->park_cv_abs, NULL);
     pthread_mutex_init(&thread->park_lock, NULL);
 
     /* Record the thread's stack base */
@@ -1307,10 +1318,11 @@ int initialiseThreadStage1(InitArgs *args) {
     initialiseJavaStack(&main_ee);
     setThreadSelf(&main_thread);
 
-    pthread_cond_init(&main_thread.wait_cv, NULL);
+    initReltimeCondVar(&main_thread.wait_cv);
 
     main_thread.park_state = PARK_RUNNING;
-    pthread_cond_init(&main_thread.park_cv, NULL);
+    initReltimeCondVar(&main_thread.park_cv);
+    pthread_cond_init(&main_thread.park_cv_abs, NULL);
     pthread_mutex_init(&main_thread.park_lock, NULL);
 
     return TRUE;
