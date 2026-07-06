@@ -21,6 +21,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <limits.h>
+#include <pthread.h>
 
 #include "jam.h"
 
@@ -39,6 +40,11 @@ int initialiseTime() {
 
 int haveMonotonicClock() {
     return have_monotonic_clock;
+}
+
+/* Initialise a condition variable to be used for relative timed waits */
+int initReltimeCondVar(pthread_cond_t *cv) {
+    return pthread_cond_init(cv, NULL);
 }
 
 void getTimeoutAbsolute(struct timespec *ts, long long millis,

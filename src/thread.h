@@ -103,6 +103,7 @@ struct thread {
     Thread *wait_next;
     pthread_cond_t wait_cv;
     pthread_cond_t park_cv;
+    pthread_cond_t park_cv_abs;
     pthread_mutex_t park_lock;
     long long blocked_count;
     long long waited_count;
@@ -189,7 +190,7 @@ typedef pthread_mutex_t VMLock;
 #define initVMLock(lock) pthread_mutex_init(&lock, NULL)
 #define initVMWaitLock(wait_lock) {            \
     pthread_mutex_init(&wait_lock.lock, NULL); \
-    pthread_cond_init(&wait_lock.cv, NULL);    \
+    initReltimeCondVar(&wait_lock.cv);         \
 }
 
 #define lockVMLock(lock, self) {                \
