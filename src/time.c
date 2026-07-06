@@ -22,6 +22,25 @@
 #include <time.h>
 #include <limits.h>
 
+#include "jam.h"
+
+/* We use the monotonic clock if it is available.  As the clock_id may be
+   present but not actually supported, we check it on startup */
+static int have_monotonic_clock = FALSE;
+
+int initialiseTime() {
+#if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
+    struct timespec ts;
+    have_monotonic_clock = (clock_gettime(CLOCK_MONOTONIC, &ts) != -1);
+#endif
+
+    return TRUE;
+}
+
+int haveMonotonicClock() {
+    return have_monotonic_clock;
+}
+
 void getTimeoutAbsolute(struct timespec *ts, long long millis,
                         long long nanos) {
 

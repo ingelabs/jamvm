@@ -1300,6 +1300,8 @@ extern int initialiseSymbol();
 
 /* time */
 
+extern int initialiseTime();
+extern int haveMonotonicClock();
 extern void getTimeoutAbsolute(struct timespec *ts, long long millis,
                                long long nanos);
 extern void getTimeoutRelative(struct timespec *ts, long long millis,
