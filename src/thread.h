@@ -213,15 +213,8 @@ typedef pthread_mutex_t VMLock;
 }
 
 #define timedWaitVMWaitLock(wait_lock, self, ms) {               \
-    struct timeval tv;                                           \
     struct timespec ts;                                          \
-    gettimeofday(&tv, 0);                                        \
-    ts.tv_sec = tv.tv_sec + ms/1000;                             \
-    ts.tv_nsec = (tv.tv_usec + ((ms%1000)*1000))*1000;           \
-    if(ts.tv_nsec > 999999999L) {                                \
-        ts.tv_sec++;                                             \
-        ts.tv_nsec -= 1000000000L;                               \
-    }                                                            \
+    getTimeoutRelative(&ts, ms, 0);                              \
     classlibSetThreadState(self, TIMED_WAITING);                 \
     pthread_cond_timedwait(&wait_lock.cv, &wait_lock.lock, &ts); \
     classlibSetThreadState(self, RUNNING);                       \
