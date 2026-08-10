@@ -1,11 +1,11 @@
 # JamVM
 
-JamVM is a compact, open-source Java Virtual Machine. The execution engine supports different levels of optimisation, from a basic switched interpreter to inline-threading with stack-caching (equivalent in performance to a simple JIT).
+JamVM is a compact, open-source virtual machine for the Java programming language, originally written by Robert Lougher. The execution engine supports different levels of optimisation, from a basic switched interpreter to inline-threading with stack-caching (equivalent in performance to a simple JIT).
 
 JamVM supports two class library backends:
 
 - [GNU Classpath](https://github.com/ingelabs/classpath) - lightweight, suitable for embedded targets
-- OpenJDK 8 - for environments requiring broader API compatibility
+- OpenJDK 8 - for environments requiring broader API coverage
 
 ## Supported platforms
 
@@ -21,12 +21,10 @@ Other platforms supported by the build system (including FreeBSD, OpenBSD and Po
 
 ## Building
 
-See [README](README) and [INSTALL](INSTALL) for build instructions.
+See the original [README](README) and [INSTALL](INSTALL) files for build instructions.
 
 ## History
 
-This project is a fork of the original JamVM project, which is no longer actively maintained (last release: 2.0.0, July 2014).
+JamVM was created and developed by Robert Lougher, who maintained it until version 2.0.0, released in July 2014. The original project site can be found at https://jamvm.sourceforge.net/.
 
-The original project site can be found here: https://jamvm.sourceforge.net/
-
-This fork continues development with a focus on embedded Linux targets.
+This project is the maintained continuation of his work, with a focus on embedded Linux targets.
