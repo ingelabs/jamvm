@@ -139,6 +139,20 @@ void classlibThreadName2Buff(Object *jThread, char *buffer, int buff_len) {
     String2Buff(name, buffer, buff_len);
 }
 
+/* SIGQUIT and SIGINT are received synchronously via sigwait(),
+   so they must be blocked in all threads.  SIGPIPE is blocked
+   so writes to broken pipes fail with EPIPE.  Process-spawning
+   code must clear the inherited mask before exec. */
+void classlibInitialiseSignalMask() {
+    sigset_t mask;
+
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGQUIT);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGPIPE);
+    sigprocmask(SIG_BLOCK, &mask, NULL);
+}
+
 void classlibSignalThread(Thread *self) {
     sigset_t mask;
     int sig;

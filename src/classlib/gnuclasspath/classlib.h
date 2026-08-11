@@ -51,6 +51,8 @@ extern Thread *classlibJThread2Thread(Object *jThread);
 extern void classlibThreadName2Buff(Object *jThread, char *buffer,
                                     int buff_len);
 
+extern void classlibInitialiseSignalMask();
+
 #define classlibInitialiseSignals() \
     /* NOTHING TO DO */ TRUE
 
