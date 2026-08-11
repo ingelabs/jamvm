@@ -44,6 +44,7 @@ extern void classlibSetThreadState(Thread *thread, int state);
 extern void classlibThreadName2Buff(Object *jThread, char *buffer,
                                     int buff_len);
 
+extern void classlibInitialiseSignalMask();
 extern int classlibInitialiseSignals();
 extern void classlibSignalThread(Thread *self);
 

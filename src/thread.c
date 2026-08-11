@@ -761,8 +761,6 @@ void createJavaThread(Object *jThread, long long stack_size) {
     enableSuspend(self);
 }
 
-static void initialiseSignalMask();
-
 Thread *attachJNIThread(char *name, char is_daemon, Object *group) {
     Thread *thread = sysMalloc(sizeof(Thread));
     void *stack_base = nativeStackBase();
@@ -775,7 +773,7 @@ Thread *attachJNIThread(char *name, char is_daemon, Object *group) {
     memset(thread, 0, sizeof(Thread));
 
     /* Externally created threads will not inherit signal state */
-    initialiseSignalMask();
+    classlibInitialiseSignalMask();
 
     /* Initialise the thread and add it to the VM thread list */
     return attachThread(name, is_daemon, stack_base, thread, group);
@@ -1134,23 +1132,8 @@ void printThreadsDump(Thread *self) {
     resumeAllThreads(self);
 }
 
-static void initialiseSignalMask() {
-    sigset_t mask;
-
-    sigemptyset(&mask);
-    sigaddset(&mask, SIGQUIT);
-    sigaddset(&mask, SIGINT);
-    sigaddset(&mask, SIGPIPE);
-    sigprocmask(SIG_BLOCK, &mask, NULL);
-}
-
 static int initialiseSignals() {
     struct sigaction act;
-
-    /* Initialise signal mask.  Signal masks are per-thread,
-       but as this is the main thread it will be inherited
-       by all threads created wtihin Java */
-    initialiseSignalMask();
 
     /* Setup signal handler for thread suspension.  Signal
        handlers are process-wide */
@@ -1161,7 +1144,16 @@ static int initialiseSignals() {
     sigaction(SIGUSR1, &act, NULL);
 
     /* Do classlib specific initialisation */
-    return classlibInitialiseSignals();
+    if(!classlibInitialiseSignals())
+        return FALSE;
+
+    /* Initialise signal mask, after the handlers have been
+       installed. Signal masks are per-thread, but as this is
+       the main thread it will be inherited by all threads
+       created wtihin Java */
+    classlibInitialiseSignalMask();
+
+    return TRUE;
 }
 
 /* garbage collection support */

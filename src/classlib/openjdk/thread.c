@@ -205,15 +205,43 @@ void classlibSignalThread(Thread *self) {
     }
 }
 
+/* Signals are received via asynchronous handlers. Make sure all
+   signals the VM uses are unblocked, so they can be delivered to
+   the registered handlers.  SIGQUIT and SIGPIPE are handled by
+   JamVM itself; SIGHUP, SIGINT and SIGTERM can be handled by the
+   class library via sun.misc.Signal, and are the only signals it
+   can register (see JVM_FindSignal) */
+void classlibInitialiseSignalMask() {
+    sigset_t mask;
+
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGQUIT);
+    sigaddset(&mask, SIGINT);
+    sigaddset(&mask, SIGHUP);
+    sigaddset(&mask, SIGTERM);
+    sigaddset(&mask, SIGPIPE);
+    pthread_sigmask(SIG_UNBLOCK, &mask, NULL);
+}
+
+/* Writes to broken pipes must fail with EPIPE rather than kill
+   the VM.  Unlike blocking or SIG_IGN, a no-op handler is reset
+   to default on exec, so it doesn't leak into spawned children. */
+static void pipeHandler(int sig) {
+}
+
 int classlibInitialiseSignals() {
     struct sigaction act;
     Class *signal_class;
 
-    act.sa_handler = signalHandler;
+    act.sa_handler = pipeHandler;
     sigemptyset(&act.sa_mask);
     act.sa_flags = SA_RESTART;
-    sigaction(SIGQUIT, &act, NULL);
+    sigaction(SIGPIPE, &act, NULL);
 
+    /*
+     * Initialise everything used by signalHandler before installing
+     * it, as these signals may already be unblocked.
+     */
     sem_init(&signal_sem, 0, 0);
 
     signal_class = findSystemClass(SYMBOL(sun_misc_Signal));
@@ -222,6 +250,17 @@ int classlibInitialiseSignals() {
 
     signal_dispatch_mb = findMethod(signal_class, SYMBOL(dispatch),
                                                   SYMBOL(_I__V));
+    if(signal_dispatch_mb == NULL)
+        return FALSE;
 
-    return signal_dispatch_mb != NULL;
+    act.sa_handler = signalHandler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = SA_RESTART;
+
+    sigaction(SIGQUIT, &act, NULL);
+    sigaction(SIGHUP, &act, NULL);
+    sigaction(SIGINT, &act, NULL);
+    sigaction(SIGTERM, &act, NULL);
+
+    return TRUE;
 }
