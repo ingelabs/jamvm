@@ -150,7 +150,7 @@ void classlibInitialiseSignalMask() {
     sigaddset(&mask, SIGQUIT);
     sigaddset(&mask, SIGINT);
     sigaddset(&mask, SIGPIPE);
-    sigprocmask(SIG_BLOCK, &mask, NULL);
+    pthread_sigmask(SIG_BLOCK, &mask, NULL);
 }
 
 void classlibSignalThread(Thread *self) {
