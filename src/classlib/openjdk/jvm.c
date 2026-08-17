@@ -2206,8 +2206,6 @@ jobject JVM_NewMultiArray(JNIEnv *env, jclass eltClass, jintArray dim) {
                need to convert from primitive class name
                to primitive char (e.g. "int" -> "I") */
 
-            static char type_name[] = {'Z', 'B', 'C', 'S',
-                                       'I', 'F', 'L', 'D'};
             int type = getPrimTypeIndex(cb);
         
             if(type == PRIM_IDX_VOID) {
@@ -2218,7 +2216,7 @@ jobject JVM_NewMultiArray(JNIEnv *env, jclass eltClass, jintArray dim) {
 
             /* Construct primitive array name, e.g. "[[I" */
             array_name = alloca(len + 2);
-            array_name[len] = type_name[type - 1];
+            array_name[len] = primClass2TypeChar((Class*)eltClass);
             array_name[len + 1] = '\0';
         } else {
             /* Construct object array name, e.g. "[[Ljava/lang/String;" */
