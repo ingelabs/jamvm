@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2010, 2011, 2012, 2013, 2014
  * Robert Lougher <rob@jamvm.org.uk>.
+ * Copyright (C) 2026 INGELABS S.L. <info@ingelabs.com>.
  *
  * This file is part of JamVM.
  *
@@ -3079,4 +3080,43 @@ jstring JVM_GetTemporaryDirectory(JNIEnv *env) {
      * expects that we return a valid directory here.
      */
     return createString("/tmp");
+}
+
+/* JVM_CopySwapMemory */
+
+void JVM_CopySwapMemory(JNIEnv *env, jobject srcObj, jlong srcOffset,
+                        jobject dstObj, jlong dstOffset, jlong size,
+                        jlong elemSize) {
+
+    char *src = srcObj == NULL ? (char *)(uintptr_t)srcOffset
+                               : (char *)srcObj + srcOffset;
+    char *dst = dstObj == NULL ? (char *)(uintptr_t)dstOffset
+                               : (char *)dstObj + dstOffset;
+    jlong i, j;
+
+    TRACE("JVM_CopySwapMemory(env=%p, srcObj=%p, srcOffset=%lld, "
+          "dstObj=%p, dstOffset=%lld, size=%lld, elemSize=%lld)",
+          env, srcObj, srcOffset, dstObj, dstOffset, size, elemSize);
+
+    /* The ranges may overlap.  Copy forward when the destination begins
+       at or before the source; otherwise copy backward, which is also safe
+       when the ranges do not overlap. */
+
+    if((uintptr_t)dst <= (uintptr_t)src) {
+        char tmp[8];
+        for(i = 0; i < size; i += elemSize) {
+            for(j = 0; j < elemSize; j++)
+                tmp[j] = src[i + j];
+            for(j = 0; j < elemSize; j++)
+                dst[i + j] = tmp[elemSize - 1 - j];
+        }
+    } else {
+        char tmp[8];
+        for(i = size - elemSize; i >= 0; i -= elemSize) {
+            for(j = 0; j < elemSize; j++)
+                tmp[j] = src[i + j];
+            for(j = 0; j < elemSize; j++)
+                dst[i + j] = tmp[elemSize - 1 - j];
+        }
+    }
 }
