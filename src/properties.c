@@ -181,7 +181,7 @@ void addDefaultProperties(Object *properties) {
     setProperty(properties, "java.vm.name", "JamVM");
     setProperty(properties, "java.vm.version", VERSION);
     setProperty(properties, "java.vm.info", getExecutionEngineName());
-    setProperty(properties, "java.vm.vendor", "Robert Lougher");
+    setProperty(properties, "java.vm.vendor", "INGELABS S.L.");
     setProperty(properties, "java.vm.vendor.url", "http://jamvm.org");
     setProperty(properties, "java.vm.specification.version", "1.0");
     setProperty(properties, "java.vm.specification.vendor",
