@@ -29,7 +29,9 @@
 #include <stdio.h>
 
 #include "jam.h"
+#include "jni.h"
 #include "excep.h"
+#include "properties.h"
 #include "symbol.h"
 #include "reflect.h"
 #include "natives.h"
@@ -307,6 +309,25 @@ uintptr_t *copyMemoryOpenJDK7(Class *class, MethodBlock *mb,
     return ostack;
 }
 
+extern void JVM_CopySwapMemory(JNIEnv *env, jobject srcObj, jlong srcOffset,
+                               jobject dstObj, jlong dstOffset, jlong size,
+                               jlong elemSize);
+
+uintptr_t *copySwapMemory(Class *class, MethodBlock *mb, uintptr_t *ostack) {
+    Object *src_base  = (Object *)ostack[1];
+    int64_t src_ofst  = *(int64_t *)&ostack[2];
+    Object *dst_base  = (Object *)ostack[4];
+    int64_t dst_ofst  = *(int64_t *)&ostack[5];
+    int64_t bytes     = *(int64_t *)&ostack[7];
+    int64_t elem_size = *(int64_t *)&ostack[9];
+
+    /* Delegate to JVM_CopySwapMemory, passing NULL as JNIEnv,
+       which is effectively unused. */
+    JVM_CopySwapMemory(NULL, (jobject)src_base, src_ofst,
+                       (jobject)dst_base, dst_ofst, bytes, elem_size);
+    return ostack;
+}
+
 uintptr_t *ensureClassInitialized(Class *class, MethodBlock *mb,
                                   uintptr_t *ostack) {
     initClass((Class*)ostack[1]);
@@ -395,6 +416,19 @@ uintptr_t *addressSize(Class *class, MethodBlock *mb, uintptr_t *ostack) {
 
 uintptr_t *pageSize(Class *class, MethodBlock *mb, uintptr_t *ostack) {
     *ostack++ = getpagesize();
+    return ostack;
+}
+
+uintptr_t *isBigEndian0(Class *class, MethodBlock *mb, uintptr_t *ostack) {
+    *ostack++ = IS_BIG_ENDIAN;
+    return ostack;
+}
+
+uintptr_t *unalignedAccess0(Class *class, MethodBlock *mb, uintptr_t *ostack) {
+    /* Return FALSE for all architectures, just like HotSpot's Zero.
+       This is always safe:  the class library then falls back to
+       aligned accesses. */
+    *ostack++ = FALSE;
     return ostack;
 }
 
@@ -545,6 +579,8 @@ VMMethod sun_misc_unsafe[] = {
     {"setMemory",              "(Ljava/lang/Object;JJB)V", setMemoryOpenJDK7},
     {"copyMemory",             "(Ljava/lang/Object;JLjava/lang/Object;JJ)V",
                                copyMemoryOpenJDK7},
+    {"copySwapMemory0",        "(Ljava/lang/Object;JLjava/lang/Object;JJJ)V",
+                               copySwapMemory},
     {"arrayBaseOffset",        NULL, arrayBaseOffset},
     {"arrayIndexScale",        NULL, arrayIndexScale},
     {"unpark",                 NULL, unpark},
@@ -564,6 +600,8 @@ VMMethod sun_misc_unsafe[] = {
     {"allocateInstance",       NULL, allocateInstance},
     {"addressSize",            NULL, addressSize},
     {"pageSize",               NULL, pageSize},
+    {"isBigEndian0",           NULL, isBigEndian0},
+    {"unalignedAccess0",       NULL, unalignedAccess0},
     {"defineAnonymousClass",   NULL, defineAnonymousClass},
     {"shouldBeInitialized",    NULL, shouldBeInitialized},
     {"fullFence",              "()V", fullFence},
