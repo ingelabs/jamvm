@@ -1,0 +1,62 @@
+IcedTea integration
+-------------------
+
+This directory contains patches needed for building IcedTea 3.x with
+this version of JamVM.  The patches are formatted for IcedTea's patch
+mechanism, which applies them with patch -p0 from the IcedTea build
+directory; to apply them to a plain JamVM tree instead, use patch -p2.
+
+
+Building IcedTea 3.x with JamVM 2.1.0
+-------------------------------------
+
+Verified with IcedTea 3.40.1 on GNU/Linux aarch64 and x86_64.
+Check IcedTea's own INSTALL file for its build requirements.
+
+1. Download and unpack the IcedTea sources:
+
+     https://icedtea.classpath.org/download/source/icedtea-3.40.1.tar.xz
+
+2. Update IcedTea's JamVM patches.  IcedTea carries patches for an
+   old pre-2.0.0 JamVM snapshot; all of them are already merged in
+   JamVM 2.1.0.  JamVM 2.1.0 instead needs unsafe-natives.patch from
+   this directory:
+
+     cp <jamvm>/contrib/icedtea/unsafe-natives.patch patches/jamvm/
+
+   In Makefile.am, replace the four patches/jamvm/ lines in the
+   ICEDTEA_PATCHES block with the new one:
+
+     if BUILD_JAMVM
+     ICEDTEA_PATCHES += patches/jamvm/unsafe-natives.patch
+     endif
+
+   Then regenerate the build system:
+
+     ./autogen.sh
+
+3. Configure and build.  Pass the path of the JamVM release tarball
+   to configure, along with its SHA-256 checksum.  Note that JFR
+   support must be disabled (--disable-jfr), since it depends on
+   HotSpot metadata that JamVM does not provide.
+
+     mkdir build && cd build
+     ../configure \
+       --enable-jamvm \
+       --with-jamvm-src-zip=<path>/jamvm-2.1.0.tar.gz \
+       --with-jamvm-checksum=<published sha256> \
+       --with-jdk-home=<path to a JDK 8> \
+       --disable-bootstrap \
+       --disable-jfr \
+       --disable-docs
+     make
+
+   IcedTea downloads the OpenJDK source drops itself and verifies
+   their checksums.
+
+4. The built image is in openjdk.build/images/j2sdk-image:
+
+     $ openjdk.build/images/j2sdk-image/bin/java -version
+     openjdk version "1.8.0_512"
+     IcedTea Runtime Environment (3.40.1) (linux-gnu build 1.8.0_512-b01)
+     JamVM (build 2.1.0, inline-threaded interpreter with stack-caching)
