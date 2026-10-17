@@ -833,12 +833,36 @@ void createVMThread(char *name, void (*start)(Thread*)) {
     pthread_mutex_unlock(&lock);
 }
 
+/* The maximum number of frames in the stack trace of a running thread.
+   The trace buffer cannot be on the native stack, as the stack of the
+   other thread can be much deeper.  It must also be allocated before
+   suspension is disabled and the thread lock is held: while the GC has
+   the other threads stopped (one of them may be stopped inside malloc),
+   a thread that cannot be suspended must not call malloc/free while it
+   holds the thread lock, as the GC needs the lock to restart the
+   threads.  Thus the size is fixed.  The specifications of
+   Thread.getStackTrace() and ThreadInfo.getStackTrace() let a VM omit
+   frames. */
+#define MAX_STACK_TRACE_DEPTH 4096
+
 Object *runningThreadStackTrace(Thread *thread, int max_depth,
                                                 int *in_native) {
     int depth = 0;
     void **trace = NULL;
     Thread *self = threadSelf();
     int is_self = thread == self;
+    Object *elements;
+
+    if(max_depth < 0 || max_depth > MAX_STACK_TRACE_DEPTH)
+        max_depth = MAX_STACK_TRACE_DEPTH;
+
+    if(max_depth > 0) {
+        trace = malloc(max_depth * 2 * sizeof(*trace));
+        if(trace == NULL) {
+            signalException(java_lang_OutOfMemoryError, NULL);
+            return NULL;
+        }
+    }
 
     if(!is_self) {
         disableSuspend(self);
@@ -855,8 +879,6 @@ Object *runningThreadStackTrace(Thread *thread, int max_depth,
 
         if(last->prev != NULL) {
             depth = countStackFrames(last, max_depth);
-            trace = alloca(depth * 2 * sizeof(void*));
-
             stackTrace2Buffer(last, trace, depth);
         }
 
@@ -873,7 +895,10 @@ Object *runningThreadStackTrace(Thread *thread, int max_depth,
         enableSuspend(self);
     }
 
-    return convertTrace2Elements(trace, depth * 2);
+    elements = convertTrace2Elements(trace, depth * 2);
+    free(trace);
+
+    return elements;
 }
 
 void suspendThread(Thread *thread) {
