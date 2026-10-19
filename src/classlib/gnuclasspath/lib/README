@@ -7,6 +7,8 @@ reference classes from GNU Classpath.
 The classes are distributed pre-built in classes.zip
 in order to simplify installation.  The classes.zip
 archive will be automatically rebuilt if any Java
-sources are changed.  Note, `jikes' must be present
-within your path, and Classpath must have already been
-built and installed as it requires glibj.zip.
+sources are changed.  When rebuilding it, a Java
+compiler such as OpenJDK 8's javac or ecj (the Eclipse
+Java Compiler) must be available, and Classpath must
+have already been built and installed because compiling
+the VM-specific classes requires glibj.zip.

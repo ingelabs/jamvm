@@ -1,10 +1,10 @@
-JamVM 2.0.0 Installation
+JamVM 2.1.0 Installation
 ========================
 
 This section describes how to configure, build and install JamVM on
 your machine, along with the necessary class libraries.  For details
-of the generic options to `configure' see the Basic Installation
-section later in this file.
+of the generic options to `configure' see the Generic Installation
+Instructions section later in this file.
 
 Getting the Files
 -----------------
@@ -12,33 +12,34 @@ Getting the Files
 You must already have the compressed tar file containing the source
 code for JamVM (you're reading this!).  For JamVM to run, it must also
 have a class library containing the system classes and the associated
-native methods (e.g. java.lang.Object).  JamVM 2.0.0 has been written to
-work either OpenJDK/IcedTea or GNU Classpath.
+native methods (e.g. java.lang.Object).  JamVM 2.1.0 has been written to
+work with either OpenJDK/IcedTea or GNU Classpath.
 
 OpenJDK/IcedTea
 ---------------
 
-As discussed in the README, the easiest way to get an OpenJDK/IcedTea
-install that works with JamVM is to get an existing package for your
-system and then overwrite the libjvm.so file with the new version.  If you
-wish to build OpenJDK/IcedTea from source, please refer to the build
-instructions contained within the source distribution.
+The easiest way to get an OpenJDK installation that works with JamVM is
+to install a pre-built OpenJDK 8 package for your system.  Then, after
+building JamVM, install it as an alternative VM as described below.
+
+To build IcedTea from source with JamVM, see contrib/icedtea/README.
 
 GNU Classpath
 -------------
 
 JamVM is compatible with GNU Classpath versions 0.98 and above (earlier
-versions will not work).  It should also be compatible with the CVS version.
+versions will not work).
 
-Classpath can be obtained from the following URL:
+A current version of Classpath can be obtained from:
 
-ftp://ftp.gnu.org/gnu/classpath
+https://github.com/ingelabs/classpath
+
+(historical releases are available from https://ftp.gnu.org/gnu/classpath)
 
 The class library consists of the Java classes and the shared libraries
-containing the native methods.  As GNU Classpath uses generics, a Java 1.5
-compatible compiler is required to build the classes, e.g. the Eclipse
-Java Compiler (ecj).  This is available as a standalone package in most
-Linux distributions.
+containing the native methods.  A Java compiler is required to build GNU
+Classpath.  OpenJDK 8's javac and the Eclipse Java Compiler (ecj) are
+known to work.
 
 
 Building and Installing JamVM
@@ -63,7 +64,7 @@ Then, to build JamVM, type :-
 
 make
 
-To install in the default location (/usr/local), type :-
+To install in the default location (/usr/local/jamvm), type :-
 
 make install
 
@@ -105,44 +106,54 @@ via Classpath and is unaffected, and will still support jar/zip files).
 This will reduce the JamVM executable by approx 10K (but see note below, in
 Classpath installation).
 
-Installing JamVM into OpenJDK/IcedTea
--------------------------------------
+Installing JamVM into OpenJDK
+-----------------------------
 
-When using JamVM with OpenJDK/IcedTea, JamVM's libjvm.so file must be
-copied from its initial install location into the OpenJDK/IcedTea
-installation.
+When using JamVM with OpenJDK, JamVM's VM library must be copied from
+its initial install location (by default, /usr/local/jamvm/lib) into
+the OpenJDK installation.
 
-The default install location puts libjvm.so into /usr/local/jamvm/lib.
+To install JamVM alongside HotSpot as an alternative VM on Linux, create
+a jamvm directory inside the JRE's architecture directory and copy
+libjvm.so there.  For example, for OpenJDK 8 on an x86_64 Debian system
+(as root):
 
-IcedTea supports JamVM as an alternative VM which is invoked using the
--jamvm option to java.  To install a new version of libjvm.so, locate the
-jamvm directory within IcedTea.  For example, for OpenJDK 7 on an x64_64
-Debian system this is /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/jamvm.
+mkdir /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/jamvm
+cp /usr/local/jamvm/lib/libjvm.so \
+    /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/amd64/jamvm
 
-If installing into OpenJDK, the default HotSpot libjvm.so can be overwritten
+On macOS, the library is named libjvm.dylib and there is no architecture
+subdirectory; create <java home>/jre/lib/jamvm and copy it there.
+
+JamVM can then be selected by passing the -XXaltjvm=jamvm option to
+java.
+
+Alternatively, on Linux the default HotSpot libjvm.so can be overwritten
 by JamVM's libjvm.so.  When java is executed it will now run JamVM (if
 HotSpot is still required you can create a copy of OpenJDK, and overwrite
-the libjvm.so in the copy).  HotSpot will be in either the client or server
-directory, e.g. <openjdk-install>/jre/lib/amd64/server.
+the libjvm.so in the copy).  HotSpot will be in either the client or
+server directory, e.g. <openjdk-install>/jre/lib/amd64/server.
 
-Do the copy (as root), e.g.:
-
-cp /usr/local/jamvm/lib/libjvm.so /usr/lib/jvm/java-7-openjdk-amd64/jre/lib/amd64/jamvm
+Note: JamVM must be used with an OpenJDK 8 whose java.lang.Class
+matches upstream.  Some distributions add extra fields to
+java.lang.Class (e.g. Amazon Corretto) and JamVM will refuse to
+initialise.  Azul Zulu, Eclipse Temurin and the Debian/Ubuntu
+openjdk-8 packages are known to work.
 
 To test the install has been successful, run java -version, e.g.:
 
-/usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java -jamvm -version
-java version "1.7.0_65"
-OpenJDK Runtime Environment (IcedTea 2.5.1) (7u65-2.5.1-2~deb7u1)
-JamVM (build 2.0.0, inline-threaded interpreter)
+/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java -XXaltjvm=jamvm -version
+openjdk version "1.8.0_492"
+OpenJDK Runtime Environment (build 1.8.0_492-8u492-ga~us2-0ubuntu1~22.04.1-b09)
+JamVM (build 2.1.0, inline-threaded interpreter)
 
 
 Building and Installing GNU classpath
 -------------------------------------
 
 This section gives basic instructions for building and installing
-GNU Classpath using ecj.  For full information on Classpath options
-see the INSTALL file inside the GNU Classpath directory.
+GNU Classpath.  For full information on Classpath options see the
+INSTALL file inside the GNU Classpath directory.
 
 1) Run `configure' - cd into the unpacked GNU Classpath directory
    and type :-
@@ -186,10 +197,11 @@ for the default installation location this is:
 unzip glibj.zip
 
 
-Basic Installation
-==================
+Generic Installation Instructions
+=================================
 
-   These are generic installation instructions.
+   The remainder of this file contains Automake's generic installation
+instructions, which are not specific to JamVM.
 
    The `configure' shell script attempts to guess correct values for
 various system-dependent variables used during compilation.  It uses
@@ -207,8 +219,8 @@ diffs or instructions to the address given in the `README' so they can
 be considered for the next release.  If at some point `config.cache'
 contains results you don't want to keep, you may remove or edit it.
 
-   The file `configure.in' is used to create `configure' by a program
-called `autoconf'.  You only need `configure.in' if you want to change
+   The file `configure.ac' is used to create `configure' by a program
+called `autoconf'.  You only need `configure.ac' if you want to change
 it or regenerate `configure' using a newer version of `autoconf'.
 
 The simplest way to compile this package is:

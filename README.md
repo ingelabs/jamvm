@@ -9,19 +9,19 @@ JamVM supports two class library backends:
 
 ## Supported platforms
 
-The primary targets are Linux embedded systems. The following architectures are supported:
+The primary targets are embedded Linux systems. The following platforms are actively tested:
 
 - Linux / 32-bit ARM
 - Linux / 64-bit ARM (aarch64)
 - Linux / x86_64
 
-macOS with Apple Silicon is also supported for development (not as a target).
+macOS with Apple Silicon is also actively used as a development platform.
 
-Other platforms supported by the build system (including FreeBSD, OpenBSD and PowerPC) may work but are not actively tested.
+Other platforms are supported, including FreeBSD and OpenBSD, but they are not regularly tested.
 
 ## Building
 
-See the original [README](README) and [INSTALL](INSTALL) files for build instructions.
+See the [INSTALL](INSTALL) and plain-text [README](README) files.
 
 ## History
 

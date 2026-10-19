@@ -1,3 +1,71 @@
+JamVM 2.1.0 released on 20th October 2026
+=========================================
+
+JamVM 2.1.0 is the first release of JamVM in over a decade, and
+the first from INGELABS, which maintains this release line as a
+continuation of the original project by Robert Lougher.  2.1.0
+continues the JamVM 2.x development line: it includes the unreleased
+work done after 2.0.0, together with community contributions and
+later maintenance.
+
+The main themes of this release are compatibility with current
+toolchains (recent GCC, Clang and javac versions), support for the
+AArch64 architecture on GNU/Linux and macOS, and compatibility fixes
+for maintained OpenJDK 8 releases, including the VM interface
+functions required to build OpenJDK 8 against JamVM.  In addition,
+signal handling on OpenJDK has been fixed (Ctrl-C termination,
+shutdown hooks and SIGQUIT thread dumps now work), and relative timed
+waits now use a monotonic clock when available, preventing wall-clock
+adjustments from changing timeout durations.  Patches and instructions
+for building current IcedTea 3.x releases with JamVM are provided in
+contrib/icedtea.
+
+This release contains changes by Robert Lougher, Simon South, Andrew
+John Hughes, Xerxes Rånby, Thomas Petazzoni, Thiago Henrique Hüpner,
+Alejandro Vázquez and Guillermo Rodríguez.  The following is an edited
+list of the changes since 2.0.0, ordered by commit date within each
+category (most recent first).  The categories distinguish changes
+affecting OpenJDK only, GNU Classpath only, and both OpenJDK and GNU
+Classpath (All).
+
+- All: Mark Linux assembly files as not requiring executable stack
+- All: Use a monotonic clock for relative timed waits when available
+- All: Add support for AArch64 on Darwin (macOS)
+- All: Work around clang hang compiling interp.c with -O1 and higher
+- All: Fix computed goto into statement expression (rejected by
+  clang 18)
+- All: Don't require librt for clock_gettime
+- All: Use <fenv.h> when available instead of <fpu_control.h>
+- All: Add support for AArch64 on GNU/Linux
+- All: Guard floating-point opcodes with an explicit memory barrier
+- All: Disable the branch-patching optimisation, which fails with
+  an illegal instruction on x86_64 when built with modern gcc and
+  glibc
+- All: Internal cleanups to ClassBlock and array allocation
+- OpenJDK: Implement JVM_CopySwapMemory
+- OpenJDK: Fix long array creation in JVM_NewMultiArray
+- OpenJDK: Implement JVM_GetTemporaryDirectory
+- OpenJDK: Do not block signals handled by OpenJDK; fixes Ctrl-C
+  termination, shutdown hooks, SIGQUIT thread dumps, and the signal
+  mask inherited by child processes
+- OpenJDK: Fix VM initialisation on macOS (java.home, native library
+  loading, os.name)
+- OpenJDK: Fix Class.getClassLoader() always returning null
+- OpenJDK: Add the JDK-8061651 resource lookup-cache API entry points,
+  reporting the cache as unavailable
+- OpenJDK: Fix JamVM with OpenJDK 8u292 (Thread.name changed from char[]
+  to String; JVM_BeforeHalt and JVM_IsUseContainerSupport were added)
+- OpenJDK: Expand ClassBlock padding for an extra reference field
+  added to java.lang.Class by an OpenJDK 8 update
+- OpenJDK: Implement JVM_FindClassFromCaller
+- GNU Classpath: Use pthread_sigmask() to set the signal mask
+- GNU Classpath: Support building the VM support classes with newer
+  versions of javac
+- GNU Classpath: Honour SYSROOT for the GNU Classpath install dir
+- GNU Classpath: Update the GNU Classpath definitions for the
+  ClassBlock field re-organisation
+
+
 JamVM 2.0.0 released on 30th July 2014
 ======================================
 

@@ -1,7 +1,9 @@
-JamVM 2.0.0
+JamVM 2.1.0
 ===========
 
-Welcome to the twenty-eighth release of JamVM!
+This is an independently maintained continuation of JamVM, originally
+developed by Robert Lougher.  Version 2.1.0 continues the JamVM 2.x
+development line.
 
 JamVM is an open-source Java Virtual Machine that aims to support the
 latest version of the JVM specification, while at the same time being
@@ -19,9 +21,7 @@ GNU Classpath
 
 GNU Classpath is a community-driven reimplementation of the Java
 class-libraries.  For many years it was the only library supported by
-JamVM.  Since the open-sourcing of Java, development of GNU Classpath
-has slowed but it is still active and maintained.  The latest release
-is 0.99, released on 16th March 2012.
+JamVM.
 
 When configured for GNU Classpath, JamVM provides a shared library
 (libjvm.so) for use with the JNI Invocation API, and a standalone
@@ -33,7 +33,7 @@ when used with GNU Classpath.  GNU Classpath, however, is much smaller
 than OpenJDK, which makes it suitable for embedded systems.
 
 By default, if no class-library is specified when configuring JamVM,
-JamVM is built to use GNU Classpath. 
+JamVM is built to use GNU Classpath.
 
 OpenJDK/IcedTea
 ---------------
@@ -42,22 +42,24 @@ OpenJDK is the official open-source implementation of the JDK resulting
 from the open-sourcing of Java in 2007.  It consists of a class-library,
 a virtual machine (HotSpot) and a java compiler (plus other tools).
 
-JamVM is compatible with the class-library from OpenJDK 6, 7 and 8 (the
-latest).  When configured for use with OpenJDK, JamVM provides a
-shared library (libjvm.so) which can be used to replace the libjvm.so
-containing HotSpot.  The existing OpenJDK launcher (java) is used, which
-now runs JamVM.
+JamVM is compatible with the class-library from OpenJDK 6, 7 and 8.
+OpenJDK 8 is the configuration actively developed and tested.  When
+configured for use with OpenJDK, JamVM provides a shared library
+(libjvm.so) which is installed into an existing OpenJDK and selected
+at run time with the -XXaltjvm=jamvm option.  Alternatively, it can
+directly replace the libjvm.so containing HotSpot.  Either way, the
+existing OpenJDK launcher (java) is used to run JamVM.
 
 IcedTea is a build harness for OpenJDK that initially replaced encumbered
 parts of OpenJDK with free components.  In addition to HotSpot, IcedTea
-also packages and supports alternative virtual machines such as JamVM.  To
-use JamVM, the -jamvm option is given on the java command line.  This
-directs the launcher to load the libjvm.so from the jamvm directory rather
-than the standard server or client directory.
+can also build and package alternative virtual machines such as JamVM.
+Its bundled JamVM support predates 2.0.0; see contrib/icedtea/README
+for building current IcedTea 3.x with this release.
 
-The easiest way to get OpenJDK/IcedTea is to install a pre-built package
-for your system.  You can then replace HotSpot or the existing JamVM library
-with the library you have built.
+The easiest way to get an OpenJDK installation that works with JamVM is
+to install a pre-built OpenJDK 8 package for your system.  JamVM can then
+be installed alongside HotSpot as an alternative VM.  See INSTALL for
+build and installation instructions.
 
 Supported Platforms/Architectures
 =================================
@@ -70,9 +72,9 @@ native calling convention (or ABI) is both platform and architecture
 dependent.  This is needed by JamVM when constructing a call frame to invoke
 a native method.  For most platform/architectures this is provided by
 highly-efficient hand-written native assembler, although libffi is also
-supported for all platforms (specified by --with-libffi when configuring).
+supported for all platforms (specified by --enable-ffi when configuring).
 Libffi is less efficient than the hand-written assembler although recent
-versions of JamVM also includes stubs for common method signatures.
+versions of JamVM also include stubs for common method signatures.
 
 The following platforms/architectures are recognised by configure.  Those
 marked with * must be configured to use libffi.
@@ -112,14 +114,14 @@ particular order, is given below.
 - Stop-the-world garbage collector, with separate mark/sweep
   and mark/compact phases to minimise heap fragmentation
 
-- Thread suspension uses signals to reduce supend latency and improve
+- Thread suspension uses signals to reduce suspend latency and improve
   performance (no suspension checks during normal execution)
 
 - Full object finalisation support within the garbage collector
   (with finaliser thread)
 
 - Full GC support for Soft, Weak and Phantom References.  References
-  are enqueued using a seperate thread (the reference handler)
+  are enqueued using a separate thread (the reference handler)
 
 - Full GC support for class and class-loader unloading (including
   associated shared libraries)
@@ -147,5 +149,4 @@ particular order, is given below.
 
 That's it!
 
-Robert Lougher <rob@jamvm.org.uk>
-30th July 2014.
+INGELABS S.L. <info@ingelabs.com>
