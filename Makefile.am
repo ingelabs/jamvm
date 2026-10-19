@@ -20,4 +20,5 @@
 ##
 
 SUBDIRS = src
-EXTRA_DIST = ACKNOWLEDGEMENTS
+EXTRA_DIST = ACKNOWLEDGEMENTS \
+    contrib/icedtea/README contrib/icedtea/unsafe-natives.patch
