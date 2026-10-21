@@ -160,14 +160,7 @@ void classlibSetThreadState(Thread *thread, int state) {
 
 void classlibThreadName2Buff(Object *jThread, char *buffer, int buff_len) {
     Object *name = INST_DATA(jThread, Object*, name_offset);
-    unsigned short *unicode = ARRAY_DATA(name, unsigned short);
-    int i, len = ARRAY_LEN(name) < buff_len ? ARRAY_LEN(name)
-                                            : buff_len - 1;
-
-    for(i = 0; i < len; i++)
-        buffer[i] = unicode[i];
-
-    buffer[len] = '\0';
+    String2Buff(name, buffer, buff_len);
 }
 
 static sem_t signal_sem;
