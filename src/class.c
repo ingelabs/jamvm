@@ -2195,7 +2195,7 @@ char *getClassPath() {
     return classpath;
 }
 
-#if defined(__linux__) || defined(__APPLE__)
+#if defined(__linux__) || defined(__APPLE__) || defined(__HAIKU__)
 int filter(const struct dirent *entry) {
 #else
 int filter(struct dirent *entry) {
