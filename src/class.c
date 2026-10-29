@@ -366,6 +366,24 @@ Class *parseClass(char *classname, char *data, int offset, int len,
         return NULL;
     }
 
+    /* Only the bootstrap loader can define classes in the java.*
+       packages.  Check this before the class gets the special handling
+       that some java.lang classes get by name. */
+    if(class_loader != NULL && strncmp(classblock->name, "java/", 5) == 0) {
+        int pkg_len = strrchr(classblock->name, '/') - classblock->name;
+        char message[pkg_len + sizeof("Prohibited package name: ")];
+        char *pntr;
+
+        sprintf(message, "Prohibited package name: %.*s", pkg_len,
+                classblock->name);
+        for(pntr = message; *pntr; pntr++)
+            if(*pntr == '/')
+                *pntr = '.';
+
+        signalException(java_lang_SecurityException, message);
+        return NULL;
+    }
+
     prepareClass(class);
 
     if(classblock->name == SYMBOL(java_lang_Object)) {
