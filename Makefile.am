@@ -20,5 +20,5 @@
 ##
 
 SUBDIRS = src
-EXTRA_DIST = ACKNOWLEDGEMENTS \
+EXTRA_DIST = ACKNOWLEDGEMENTS m4/scandir.m4 \
     contrib/icedtea/README contrib/icedtea/unsafe-natives.patch

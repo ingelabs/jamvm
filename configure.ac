@@ -353,6 +353,7 @@ dnl Checks for library functions.
 AC_FUNC_ALLOCA
 AC_FUNC_MMAP
 AC_CHECK_FUNCS(gettimeofday strtol setlocale)
+JAMVM_SCANDIR_CONST
 AM_LC_MESSAGES
 
 dnl This check initially determined if thread local storage is supported by

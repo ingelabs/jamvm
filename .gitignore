@@ -16,6 +16,7 @@ Makefile.in
 .libs/
 
 m4/*
+!m4/scandir.m4
 aclocal.m4
 autom4te.cache
 compile
