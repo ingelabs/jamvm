@@ -2195,11 +2195,7 @@ char *getClassPath() {
     return classpath;
 }
 
-#if defined(__linux__) || defined(__APPLE__) || defined(__HAIKU__)
-int filter(const struct dirent *entry) {
-#else
-int filter(struct dirent *entry) {
-#endif
+int filter(SCANDIR_FILTER_CONST struct dirent *entry) {
     int len = strlen(entry->d_name);
     char *ext = (char*)&entry->d_name[len-4];
 
