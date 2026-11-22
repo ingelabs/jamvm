@@ -167,7 +167,7 @@ void classlibSignalThread(Thread *self) {
 
         /* If it was an interrupt (e.g. Ctrl-C) terminate the VM */
         if(sig == SIGINT)
-            exitVM(0);
+            exitVM(128 + SIGINT);
 
         /* It must be a SIGQUIT.  Do a thread dump */
         printThreadsDump(self);
